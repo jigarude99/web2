@@ -87,9 +87,9 @@ public class UserController {
 	private static void getUserData(ResultSet rs, User user) throws SQLException {
 	    user.setId(rs.getInt(1));
 		user.setUsername(rs.getString(2));
-		user.setName(rs.getString(3));
-		user.setLastName(rs.getString(4));
-		user.setEmail(rs.getString(5));
+		user.setName(rs.getString(4));
+		user.setLastName(rs.getString(5));
+		user.setEmail(rs.getString(6));
 		user.setPassword(null);
 	}
 
@@ -135,5 +135,37 @@ public class UserController {
 			poolManager.returnConn(con);
 		}
 		return false;
+	}
+
+	public static Response<User> modifyUser(User user) {
+		Connection con = poolManager.getConn();
+		Response<User> response = new Response<>();
+		String query = prop.getValue("updateUser");
+		try {
+			PreparedStatement ps = con.prepareStatement(query);
+			ps.setString(1, user.getName());
+			ps.setString(2, user.getUsername());
+			ps.setString(3, user.getLastName());
+			ps.setString(4, user.getEmail());
+			ps.setInt(5, user.getId());
+			ps.setString(6, user.getPassword());
+			int affectedRows = ps.executeUpdate();
+			if(affectedRows == 1) {
+				response.setStatus(200);
+				response.setMessage("Usuario actualizado de manera exitosa");
+				response.setData(user);
+			} else {
+				response.setStatus(401);
+				response.setMessage("Credenciales invalidas");
+				response.setData(null);
+			}
+		} catch (SQLException e) {
+			e.printStackTrace();
+			response.setStatus(500);
+			response.setMessage("Error DB");
+			response.setData(user);
+		}
+		poolManager.returnConn(con);
+		return response;
 	}
 }
